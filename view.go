@@ -42,9 +42,16 @@ func MakeCustomTable() *CustomTable {
 
 		for {
 			res.selected += delta
-			if res.rows[res.selected].Selectable {
+			if res.selected < 0 ||
+				res.selected >= len(res.rows) ||
+				res.rows[res.selected].Selectable {
 				break
 			}
+		}
+		if res.selected < 0 {
+			res.selected = 0
+		} else if res.selected >= len(res.rows) {
+			res.selected = len(res.rows) - 1
 		}
 
 		res.Table.Select(res.selected, 0)
