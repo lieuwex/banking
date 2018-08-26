@@ -79,9 +79,8 @@ func formatPrice(amount float64, useColor bool) string {
 
 	if useColor {
 		return fmt.Sprintf("[:%s]%.2f EUR", color, amount)
-	} else {
-		return fmt.Sprintf("%.2f EUR", amount)
 	}
+	return fmt.Sprintf("%.2f EUR", amount)
 }
 
 func RunView(days []Day) error {
