@@ -34,7 +34,7 @@ type Day struct {
 func entriesToDays(balance float64, entries []types.Entry) []Day {
 	m := extract(entries)
 
-	var days []Day
+	days := make([]Day, 365)
 
 	date := Today()
 	for i := 0; i < 365; i++ {
@@ -57,7 +57,7 @@ func entriesToDays(balance float64, entries []types.Entry) []Day {
 			DateBalance:      dateBalance,
 			BalanceAfterDate: balance,
 		}
-		days = append(days, day)
+		days[len(days)-i-1] = day
 
 		balance -= dateBalance
 	}

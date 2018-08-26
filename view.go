@@ -1,10 +1,20 @@
 package main
 
 import (
+	"banking/types"
 	"fmt"
 	"time"
 
 	"github.com/rivo/tview"
+)
+
+type GroupBy int
+
+const (
+	ByDay GroupBy = iota
+	ByWeek
+	ByMonth
+	ByYear
 )
 
 type Row struct {
@@ -83,39 +93,68 @@ func formatPrice(amount float64, useColor bool) string {
 	return fmt.Sprintf("%.2f EUR", amount)
 }
 
-func RunView(days []Day) error {
-	table := MakeCustomTable()
+func getTimeByOption(option GroupBy) time.Duration {
+	day := 24 * time.Hour
 
-	date := Today()
-	for i := 0; i < 365; i++ {
-		date = date.Add(-24 * time.Hour)
+	switch option {
+	case ByDay:
+		return day
+	case ByWeek:
+		return 7 * day
+	case ByMonth:
+		return 30 * day
+	case ByYear:
+		return 365 * day
+	}
 
-		index := -1
-		for i, day := range days {
-			if Date(day.Date) == Date(date) {
-				index = i
-				break
-			}
-		}
-		if index == -1 {
+	return -1
+}
+
+func getBetween(days []Day, start, end time.Time) (balanceDifference, balance float64, entries []types.Entry) {
+	balanceDifference = 0
+
+	for _, day := range days {
+		if day.Date.Unix() < start.Unix() ||
+			day.Date.Unix() >= end.Unix() {
 			continue
 		}
-		day := days[index]
+
+		for _, entry := range day.Entries {
+			entries = append(entries, entry)
+		}
+
+		balance = day.BalanceAfterDate
+		balanceDifference += day.DateBalance
+	}
+
+	return balanceDifference, balance, entries
+}
+
+func RunView(days []Day) error {
+	date := Today()
+	timeDelta := getTimeByOption(ByDay)
+
+	table := MakeCustomTable()
+
+	for i := 0; i < 365; i++ {
+		d := date.Add(-1 * timeDelta)
+		balanceDifference, balance, entries := getBetween(days, d, date)
+		date = d
 
 		var lastCell string
-		if day.DateBalance != 0 {
-			lastCell = formatPrice(day.DateBalance, true)
+		if balanceDifference != 0 {
+			lastCell = formatPrice(balanceDifference, true)
 		}
 		table.AddRow(
 			false,
 			date.Format("2006-01-02"),
 			"",
 			"",
-			formatPrice(day.BalanceAfterDate, false),
+			formatPrice(balance, false),
 			lastCell,
 		)
 
-		for _, entry := range day.Entries {
+		for _, entry := range entries {
 			table.AddRow(
 				true,
 				"",
