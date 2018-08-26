@@ -71,6 +71,19 @@ func (t *CustomTable) AddRow(selectable bool, items ...string) {
 	t.rows = append(t.rows, row)
 }
 
+func formatPrice(amount float64, useColor bool) string {
+	color := "green"
+	if amount < 0 {
+		color = "red"
+	}
+
+	if useColor {
+		return fmt.Sprintf("[:%s]%.2f EUR", color, amount)
+	} else {
+		return fmt.Sprintf("%.2f EUR", amount)
+	}
+}
+
 func RunView(days []Day) error {
 	table := MakeCustomTable()
 
@@ -92,14 +105,14 @@ func RunView(days []Day) error {
 
 		var lastCell string
 		if day.DateBalance != 0 {
-			lastCell = fmt.Sprintf("%.2f EUR", day.DateBalance)
+			lastCell = formatPrice(day.DateBalance, true)
 		}
 		table.AddRow(
 			false,
 			date.Format("2006-01-02"),
 			"",
 			"",
-			fmt.Sprintf("%.2f EUR", day.BalanceAfterDate),
+			formatPrice(day.BalanceAfterDate, false),
 			lastCell,
 		)
 
@@ -107,7 +120,7 @@ func RunView(days []Day) error {
 			table.AddRow(
 				true,
 				"",
-				fmt.Sprintf("%.2f EUR", entry.Amount),
+				formatPrice(entry.Amount, true),
 				entry.Description,
 			)
 		}
