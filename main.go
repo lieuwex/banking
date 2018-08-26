@@ -83,33 +83,7 @@ func main() {
 
 	days := entriesToDays(balance, records)
 
-	date := Today().Add(-1 * 365 * 24 * time.Hour)
-	for i := 0; i < 365; i++ {
-		date = date.Add(24 * time.Hour)
-
-		index := -1
-		for i, day := range days {
-			if Date(day.Date) == Date(date) {
-				index = i
-				break
-			}
-		}
-		if index == -1 {
-			continue
-		}
-		day := days[index]
-
-		entriesStr := ""
-		for _, entry := range day.Entries {
-			entriesStr += fmt.Sprintf("\n   %.2fEUR\t\t%s", entry.Amount, entry.Description)
-		}
-
-		if day.DateBalance != 0 {
-			fmt.Printf("%s\t\t%.2f\t%.2f", date.Format("2006-01-02"), day.BalanceAfterDate, day.DateBalance)
-		} else {
-			fmt.Printf("%s\t\t%.2f", date.Format("2006-01-02"), day.BalanceAfterDate)
-		}
-		fmt.Printf("%s\n\n", entriesStr)
-
+	if err := RunView(days); err != nil {
+		panic(err)
 	}
 }
