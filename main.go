@@ -5,26 +5,17 @@ import (
 	"banking/types"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"time"
 )
 
-func extract(records []types.Entry) (keys []int, values map[int][]float64) {
-	// fill map
-	m := make(map[int][]float64)
+func extract(records []types.Entry) map[int64][]types.Entry {
+	m := make(map[int64][]types.Entry)
 	for _, record := range records {
-		unix := int(record.Date.Unix())
-		m[unix] = append(m[unix], record.Amount)
+		unix := record.Date.Unix()
+		m[unix] = append(m[unix], record)
 	}
-
-	// get sorted keys
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
-
-	return keys, m
+	return m
 }
 
 func printUsage(cmd string) {
@@ -42,27 +33,35 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	keys, values := extract(records)
+	m := extract(records)
 
 	balance, err := strconv.ParseFloat(currentBalance, 64)
 	if err != nil {
 		panic(err)
 	}
 
-	for i := len(keys) - 1; i >= 0; i-- {
-		date := keys[i]
+	date := today()
+
+	for i := 0; i < 365; i++ {
+		date = date.Add(-24 * time.Hour)
+		unix := date.Unix()
+
+		entriesStr := ""
 		dateBalance := 0.0
-		for _, amount := range values[date] {
-			dateBalance += amount
+
+		entries, has := m[unix]
+		for _, entry := range entries {
+			dateBalance += entry.Amount
+			entriesStr += fmt.Sprintf("\n   %.2fEUR\t\t%s", entry.Amount, entry.Description)
 		}
 
-		balance -= dateBalance
+		if has {
+			fmt.Printf("%s\t\t%.2f\t%.2f", date.Format("2006-01-02"), balance, dateBalance)
+		} else {
+			fmt.Printf("%s\t\t%.2f", date.Format("2006-01-02"), balance)
+		}
+		fmt.Printf("%s\n\n", entriesStr)
 
-		fmt.Printf(
-			"%s\t\t%.2f\t\t%.2f\n",
-			time.Unix(int64(date), 0).Format("2006-01-02"),
-			dateBalance,
-			balance,
-		)
+		balance -= dateBalance
 	}
 }
