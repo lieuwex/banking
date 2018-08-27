@@ -12,8 +12,11 @@ type model struct {
 
 	filter string
 
-	timeDelta    time.Duration // REVIEW: config struct?
-	isTagging    bool
+	timeDelta time.Duration // REVIEW: config struct?
+
+	isTagging bool
+
 	isSearching  bool
 	isCommanding bool
+	query        string
 }

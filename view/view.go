@@ -3,6 +3,7 @@ package view
 import (
 	"banking/calc"
 	"banking/types"
+	"fmt"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -28,75 +29,28 @@ func MakeViewState(balance float64, entries []types.Entry) *ViewState {
 	}
 }
 
-func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.EventKey {
-	query := ""
-
-	return func(event *tcell.EventKey) *tcell.EventKey {
-		if s.model.isSearching {
-			if event.Key() == 13 {
-				s.finishSearch(query)
-				query = ""
-			} else {
-				query += string(event.Rune())
-				s.setCommandBarText("/", query)
-			}
-			s.app.Draw()
-			return nil
-		} else if s.model.isCommanding {
-			if event.Key() == 13 {
-				s.finishSearch(query)
-				query = ""
-			} else {
-				query += string(event.Rune())
-				s.setCommandBarText(":", query)
-			}
-			s.app.Draw()
-			return nil
-		}
-
-		switch event.Rune() {
-		case 'q':
-			s.app.Stop()
-
-		case '/':
-			s.startSearch()
-
-		case '{':
-			panic("TODO {")
-		case '}':
-			panic("TODO }")
-
-		case 't':
-			s.startTagging()
-
-		default:
-			if event.Key() == 13 {
-				// TODO
-			}
-		}
-
-		return event
-	}
-}
-
-func (s *ViewState) createTagModal() tview.Primitive {
-	modal := func(p tview.Primitive, width, height int) tview.Primitive {
-		return tview.NewGrid().
-			SetColumns(0, width, 0).
-			SetRows(0, height, 0).
-			AddItem(p, 1, 1, 1, 1, 0, 0, true)
+// REVIEW
+func (s *ViewState) redrawStuff() {
+	setCommandBarText := func(prefix, str string) {
+		str = fmt.Sprintf("\n%s%s", prefix, str)
+		s.commandBar.SetText(str)
 	}
 
-	field := tview.NewInputField().SetLabel("add tag")
-	field.SetDoneFunc(func(key tcell.Key) {
-		if key != tcell.KeyEnter {
-			return
-		}
+	if s.model.isSearching {
+		setCommandBarText("/", s.model.query)
+	} else if s.model.isCommanding {
+		setCommandBarText(":", s.model.query)
+	} else {
+		setCommandBarText("", "")
+	}
 
-		s.finishTagging(field.GetText())
-	})
+	if s.model.isTagging {
+		s.pages.ShowPage("tag-modal")
+	} else {
+		s.pages.HidePage("tag-modal")
+	}
 
-	return modal(field, 40, 3)
+	s.app.Draw()
 }
 
 func (state *ViewState) Run() error {
@@ -129,7 +83,26 @@ func (state *ViewState) Run() error {
 		AddItem(state.commandBar, 2, 1, false)
 
 	// create tagModal
-	state.tagModal = state.createTagModal()
+	makeTagModal := func() tview.Primitive {
+		modal := func(p tview.Primitive, width, height int) tview.Primitive {
+			return tview.NewGrid().
+				SetColumns(0, width, 0).
+				SetRows(0, height, 0).
+				AddItem(p, 1, 1, 1, 1, 0, 0, true)
+		}
+
+		field := tview.NewInputField().SetLabel("add tag")
+		field.SetDoneFunc(func(key tcell.Key) {
+			if key != tcell.KeyEnter {
+				return
+			}
+
+			state.finishTagging(field.GetText())
+		})
+
+		return modal(field, 40, 3)
+	}
+	state.tagModal = makeTagModal()
 
 	// create pages (root view)
 	state.pages = tview.NewPages().

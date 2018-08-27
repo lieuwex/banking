@@ -2,7 +2,6 @@ package view
 
 import (
 	"banking/types"
-	"fmt"
 )
 
 func (s *ViewState) startTagging() {
@@ -24,25 +23,20 @@ func (s *ViewState) updateInfoBox(entry *types.Entry) {
 
 func (s *ViewState) startSearch() {
 	s.model.isSearching = true
-	s.setCommandBarText("/", "")
 }
 
-func (s *ViewState) finishSearch(query string) {
+func (s *ViewState) finishSearch() {
 	s.model.isSearching = false
-	s.model.filter = query
+	s.model.filter = s.model.query
+	s.model.query = ""
 }
 
 func (s *ViewState) startCommand() {
 	s.model.isCommanding = true
-	s.setCommandBarText(":", "")
 }
 
-func (s *ViewState) finishCommand(cmd string) {
+func (s *ViewState) finishCommand() {
 	s.model.isCommanding = false
+	s.model.query = ""
 	// TODO: execute
-}
-
-func (s *ViewState) setCommandBarText(prefix, str string) {
-	str = fmt.Sprintf("\n%s%s", prefix, str)
-	s.commandBar.SetText(str)
 }
