@@ -25,9 +25,6 @@ func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.Event
 		}
 
 		switch event.Rune() {
-		case 'q':
-			s.app.Stop()
-
 		case '/':
 			s.startSearch()
 		case ':':
@@ -37,9 +34,6 @@ func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.Event
 			panic("TODO {")
 		case '}':
 			panic("TODO }")
-
-		case 't':
-			s.startTagging()
 
 		default:
 			if event.Key() == 13 {
