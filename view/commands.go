@@ -1,6 +1,10 @@
 package view
 
-import "strings"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"strings"
+)
 
 func (s *ViewState) runCommand(cmd string) {
 	if cmd == "" {
@@ -12,7 +16,14 @@ func (s *ViewState) runCommand(cmd string) {
 
 	switch args[0] {
 	case "w", "write":
-		panic("TODO: write")
+		bytes, err := json.Marshal(s.model.entries)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := ioutil.WriteFile("./data.json", bytes, 0644); err != nil {
+			panic(err)
+		}
 
 	case "q", "quit":
 		s.app.Stop()
