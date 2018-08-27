@@ -13,6 +13,8 @@ type Entry struct {
 	Amount         float64
 	MutationType   string // REVIEW
 	Information    string
+
+	Tags []string
 }
 
 func (e Entry) String() string {
