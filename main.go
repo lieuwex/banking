@@ -77,8 +77,8 @@ func main() {
 
 	days := entriesToDays(balance, records)
 
-	state := view.MakeViewState()
-	if err := state.Run(days); err != nil {
+	state := view.MakeViewState(days)
+	if err := state.Run(); err != nil {
 		panic(err)
 	}
 }

@@ -28,13 +28,16 @@ type CustomTable struct {
 
 	rows []Row
 
-	selected int
+	selected         int
+	rowNumberToEntry map[int]*types.Entry
 }
 
 func MakeCustomTable() *CustomTable {
 	res := &CustomTable{
-		Table:    tview.NewTable(),
-		selected: 0,
+		Table: tview.NewTable(),
+
+		selected:         0,
+		rowNumberToEntry: make(map[int]*types.Entry),
 	}
 
 	res.Table.SetSelectable(true, false)
@@ -71,8 +74,10 @@ func MakeCustomTable() *CustomTable {
 
 	return res
 }
-func (t *CustomTable) AddRow(selectable bool, items ...string) {
-	row := Row{Selectable: selectable}
+func (t *CustomTable) AddRow(entry *types.Entry, items ...string) {
+	row := Row{
+		Selectable: entry != nil,
+	}
 	index := len(t.rows)
 
 	for i, item := range items {
@@ -84,7 +89,11 @@ func (t *CustomTable) AddRow(selectable bool, items ...string) {
 		row.Words = append(row.Words, item)
 	}
 
+	t.rowNumberToEntry[index] = entry
 	t.rows = append(t.rows, row)
+}
+func (t *CustomTable) GetSelected() *types.Entry {
+	return t.rowNumberToEntry[t.selected]
 }
 
 func formatPrice(amount float64, useColor bool) string {
@@ -138,13 +147,18 @@ func getBetween(days []types.Day, start, end time.Time) (balanceDifference, bala
 }
 
 type ViewState struct {
+	openID string
+	days   []types.Day
 }
 
-func MakeViewState() *ViewState {
-	return &ViewState{}
+func MakeViewState(days []types.Day) *ViewState {
+	return &ViewState{
+		openID: "",
+		days:   days,
+	}
 }
 
-func (state *ViewState) Run(days []types.Day) error {
+func (state *ViewState) Run() error {
 	date := utils.Today()
 	timeDelta := getTimeByOption(ByWeek)
 
@@ -152,7 +166,7 @@ func (state *ViewState) Run(days []types.Day) error {
 
 	for i := 0; i < 365; i++ {
 		d := date.Add(-1 * timeDelta)
-		balanceDifference, balance, entries := getBetween(days, d, date)
+		balanceDifference, balance, entries := getBetween(state.days, d, date)
 		date = d
 
 		var lastCell string
@@ -160,7 +174,7 @@ func (state *ViewState) Run(days []types.Day) error {
 			lastCell = formatPrice(balanceDifference, true)
 		}
 		table.AddRow(
-			false,
+			nil,
 			date.Format("2006-01-02"),
 			"",
 			"",
@@ -169,8 +183,10 @@ func (state *ViewState) Run(days []types.Day) error {
 		)
 
 		for _, entry := range entries {
+			entryCopy := entry
+
 			table.AddRow(
-				true,
+				&entryCopy,
 				"",
 				formatPrice(entry.Amount, true),
 				entry.Description,
@@ -187,7 +203,8 @@ func (state *ViewState) Run(days []types.Day) error {
 
 		default:
 			if event.Key() == 13 {
-				app.Stop()
+				entry := table.GetSelected()
+				println(entry.Description)
 			}
 		}
 
