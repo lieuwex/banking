@@ -17,6 +17,8 @@ type CustomTable struct {
 
 	selected         int
 	rowNumberToEntry map[int]*types.Entry
+
+	selectedHandler func(entry *types.Entry)
 }
 
 func MakeCustomTable() *CustomTable {
@@ -29,9 +31,19 @@ func MakeCustomTable() *CustomTable {
 
 	res.Table.SetSelectable(true, false)
 
+	onSelectionDone := func() {
+		if res.selectedHandler != nil {
+			entry := res.GetSelected()
+			if entry != nil {
+				res.selectedHandler(entry)
+			}
+		}
+	}
+
 	res.Table.SetSelectionChangedFunc(func(row, column int) {
 		if res.rows[row].Selectable {
 			res.selected = row
+			onSelectionDone()
 			return
 		}
 
@@ -57,6 +69,7 @@ func MakeCustomTable() *CustomTable {
 		}
 
 		res.Table.Select(res.selected, 0)
+		onSelectionDone()
 	})
 
 	return res
@@ -83,4 +96,8 @@ func (t *CustomTable) AddRow(entry *types.Entry, items ...string) {
 
 func (t *CustomTable) GetSelected() *types.Entry {
 	return t.rowNumberToEntry[t.selected]
+}
+
+func (t *CustomTable) AddSelectionHandler(fn func(entry *types.Entry)) {
+	t.selectedHandler = fn
 }

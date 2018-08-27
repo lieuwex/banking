@@ -3,6 +3,7 @@ package view
 import (
 	"banking/types"
 	"banking/utils"
+	"fmt"
 	"time"
 
 	"github.com/gdamore/tcell"
@@ -51,8 +52,9 @@ type ViewState struct {
 	days      []types.Day
 	timeDelta time.Duration
 
-	table *CustomTable
-	app   *tview.Application
+	table   *CustomTable
+	infoBox *tview.TextView
+	app     *tview.Application
 }
 
 func MakeViewState(days []types.Day) *ViewState {
@@ -70,8 +72,7 @@ func (s *ViewState) getKeyHandler() func(event *tcell.EventKey) *tcell.EventKey 
 
 		default:
 			if event.Key() == 13 {
-				entry := s.table.GetSelected()
-				println(entry.Description)
+				// TODO
 			}
 		}
 
@@ -79,14 +80,35 @@ func (s *ViewState) getKeyHandler() func(event *tcell.EventKey) *tcell.EventKey 
 	}
 }
 
+func (s *ViewState) getSelectedHandler() func(entry *types.Entry) {
+	return func(entry *types.Entry) {
+		infoBoxStr := fmt.Sprintf(
+			"description: %s\n\naccount: %s\ncounter account: %s\n\n%s",
+			entry.Description,
+			entry.Account,
+			entry.CounterAccount,
+			entry.Information,
+		)
+		s.infoBox.SetText(infoBoxStr)
+	}
+}
+
 func (state *ViewState) Run() error {
 	// prepare
 	state.timeDelta = getTimeByOption(ByWeek)
 	state.table = createTable(state.timeDelta, state.days)
+	state.table.AddSelectionHandler(state.getSelectedHandler())
+
+	state.infoBox = tview.NewTextView()
+	state.infoBox.SetBorder(true).SetTitle("info")
+
+	flex := tview.NewFlex().
+		AddItem(state.table.Table, 0, 2, true).
+		AddItem(state.infoBox, 0, 1, false)
 
 	// make real view
 	state.app = tview.NewApplication()
-	state.app.SetRoot(state.table.Table, true)
+	state.app.SetRoot(flex, true)
 	state.app.SetInputCapture(state.getKeyHandler())
 
 	// run
