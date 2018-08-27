@@ -26,3 +26,11 @@ func (e Entry) String() string {
 		e.Information,
 	)
 }
+
+type Day struct {
+	Entries []Entry
+	Date    time.Time
+
+	DateBalance      float64
+	BalanceAfterDate float64
+}

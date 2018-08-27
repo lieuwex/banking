@@ -3,6 +3,8 @@ package main
 import (
 	"banking/ing"
 	"banking/types"
+	"banking/utils"
+	"banking/view"
 	"fmt"
 	"os"
 	"strconv"
@@ -23,20 +25,12 @@ func printUsage(cmd string) {
 	os.Exit(1)
 }
 
-type Day struct {
-	Entries []types.Entry
-	Date    time.Time
-
-	DateBalance      float64
-	BalanceAfterDate float64
-}
-
-func entriesToDays(balance float64, entries []types.Entry) []Day {
+func entriesToDays(balance float64, entries []types.Entry) []types.Day {
 	m := extract(entries)
 
-	days := make([]Day, 365)
+	days := make([]types.Day, 365)
 
-	date := Today()
+	date := utils.Today()
 	for i := 0; i < 365; i++ {
 		date = date.Add(-24 * time.Hour)
 		unix := date.Unix()
@@ -50,7 +44,7 @@ func entriesToDays(balance float64, entries []types.Entry) []Day {
 			dateBalance += entry.Amount
 		}
 
-		day := Day{
+		day := types.Day{
 			Entries: entries,
 			Date:    date,
 
@@ -83,7 +77,8 @@ func main() {
 
 	days := entriesToDays(balance, records)
 
-	if err := RunView(days); err != nil {
+	state := view.MakeViewState()
+	if err := state.Run(days); err != nil {
 		panic(err)
 	}
 }

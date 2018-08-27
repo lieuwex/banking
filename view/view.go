@@ -1,10 +1,12 @@
-package main
+package view
 
 import (
 	"banking/types"
+	"banking/utils"
 	"fmt"
 	"time"
 
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
@@ -86,14 +88,15 @@ func (t *CustomTable) AddRow(selectable bool, items ...string) {
 }
 
 func formatPrice(amount float64, useColor bool) string {
-	color := "green"
-	if amount < 0 {
-		color = "red"
-	}
-
 	if useColor {
+		color := "green"
+		if amount < 0 {
+			color = "red"
+		}
+
 		return fmt.Sprintf("[:%s]%.2f EUR", color, amount)
 	}
+
 	return fmt.Sprintf("%.2f EUR", amount)
 }
 
@@ -114,7 +117,7 @@ func getTimeByOption(option GroupBy) time.Duration {
 	return -1
 }
 
-func getBetween(days []Day, start, end time.Time) (balanceDifference, balance float64, entries []types.Entry) {
+func getBetween(days []types.Day, start, end time.Time) (balanceDifference, balance float64, entries []types.Entry) {
 	balanceDifference = 0
 
 	for _, day := range days {
@@ -134,9 +137,16 @@ func getBetween(days []Day, start, end time.Time) (balanceDifference, balance fl
 	return balanceDifference, balance, entries
 }
 
-func RunView(days []Day) error {
-	date := Today()
-	timeDelta := getTimeByOption(ByDay)
+type ViewState struct {
+}
+
+func MakeViewState() *ViewState {
+	return &ViewState{}
+}
+
+func (state *ViewState) Run(days []types.Day) error {
+	date := utils.Today()
+	timeDelta := getTimeByOption(ByWeek)
 
 	table := MakeCustomTable()
 
@@ -168,5 +178,20 @@ func RunView(days []Day) error {
 		}
 	}
 
-	return tview.NewApplication().SetRoot(table.Table, true).Run()
+	app := tview.NewApplication()
+	app.SetRoot(table.Table, true)
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
+		case 'q':
+			app.Stop()
+
+		default:
+			if event.Key() == 13 {
+				app.Stop()
+			}
+		}
+
+		return event
+	})
+	return app.Run()
 }
