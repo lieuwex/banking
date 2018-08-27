@@ -8,6 +8,7 @@ func (s *ViewState) queryInput(event *tcell.EventKey, fn func()) {
 
 	if keycode == 13 {
 		fn()
+		query = ""
 	} else if keycode == 127 && len(query) > 0 {
 		query = query[:len(query)-1]
 	} else {

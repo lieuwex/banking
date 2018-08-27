@@ -16,7 +16,6 @@ func (s *ViewState) startSearch() {
 func (s *ViewState) finishSearch() {
 	s.model.isSearching = false
 	s.model.filter = s.model.query
-	s.model.query = ""
 }
 
 func (s *ViewState) startCommand() {
@@ -26,5 +25,4 @@ func (s *ViewState) startCommand() {
 func (s *ViewState) finishCommand() {
 	s.model.isCommanding = false
 	s.runCommand(s.model.query)
-	s.model.query = ""
 }
