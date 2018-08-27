@@ -74,6 +74,10 @@ func (t *CustomTable) AddRow(selectable bool, items ...string) {
 	index := len(t.rows)
 
 	for i, item := range items {
+		if item == "" {
+			continue
+		}
+
 		t.Table.SetCellSimple(index, i, item)
 		row.Words = append(row.Words, item)
 	}
