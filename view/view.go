@@ -11,11 +11,12 @@ import (
 type ViewState struct {
 	model model
 
-	table    *CustomTable
-	infoBox  *tview.TextView
-	tagModal tview.Primitive
-	pages    *tview.Pages
-	app      *tview.Application
+	table      *CustomTable
+	infoBox    *tview.TextView
+	tagModal   tview.Primitive
+	commandBar *tview.TextView
+	pages      *tview.Pages
+	app        *tview.Application
 }
 
 func MakeViewState(balance float64, entries []types.Entry) *ViewState {
@@ -28,10 +29,37 @@ func MakeViewState(balance float64, entries []types.Entry) *ViewState {
 }
 
 func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.EventKey {
+	query := ""
+
 	return func(event *tcell.EventKey) *tcell.EventKey {
+		if s.model.isSearching {
+			if event.Key() == 13 {
+				s.finishSearch(query)
+				query = ""
+			} else {
+				query += string(event.Rune())
+				s.setCommandBarText("/", query)
+			}
+			s.app.Draw()
+			return nil
+		} else if s.model.isCommanding {
+			if event.Key() == 13 {
+				s.finishSearch(query)
+				query = ""
+			} else {
+				query += string(event.Rune())
+				s.setCommandBarText(":", query)
+			}
+			s.app.Draw()
+			return nil
+		}
+
 		switch event.Rune() {
 		case 'q':
 			s.app.Stop()
+
+		case '/':
+			s.startSearch()
 
 		case '{':
 			panic("TODO {")
@@ -86,10 +114,19 @@ func (state *ViewState) Run() error {
 	state.infoBox = tview.NewTextView()
 	state.infoBox.SetBorder(true).SetTitle("info")
 
-	// combine into background
-	background := tview.NewFlex().
+	// combine into topRow
+	topRow := tview.NewFlex().
 		AddItem(state.table.Table, 0, 2, true).
 		AddItem(state.infoBox, 0, 1, false)
+
+	// create commandBar
+	state.commandBar = tview.NewTextView()
+
+	// combine into background
+	background := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(topRow, 0, 1, true).
+		AddItem(state.commandBar, 2, 1, false)
 
 	// create tagModal
 	state.tagModal = state.createTagModal()

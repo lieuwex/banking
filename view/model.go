@@ -10,6 +10,10 @@ type model struct {
 	entries []types.Entry
 	balance float64
 
-	timeDelta time.Duration // REVIEW: config struct?
-	isTagging bool
+	filter string
+
+	timeDelta    time.Duration // REVIEW: config struct?
+	isTagging    bool
+	isSearching  bool
+	isCommanding bool
 }
