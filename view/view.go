@@ -3,39 +3,26 @@ package view
 import (
 	"banking/types"
 	"banking/utils"
+	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
-type ViewState struct {
-	openID string
-	days   []types.Day
-}
-
-func MakeViewState(days []types.Day) *ViewState {
-	return &ViewState{
-		openID: "",
-		days:   days,
-	}
-}
-
-func (state *ViewState) Run() error {
+func createTable(timeDelta time.Duration, days []types.Day) *CustomTable {
 	date := utils.Today()
-	timeDelta := getTimeByOption(ByWeek)
-
-	table := MakeCustomTable()
+	res := MakeCustomTable()
 
 	for i := 0; i < 365; i++ {
 		d := date.Add(-1 * timeDelta)
-		balanceDifference, balance, entries := getBetween(state.days, d, date)
+		balanceDifference, balance, entries := getBetween(days, d, date)
 		date = d
 
 		var lastCell string
 		if balanceDifference != 0 {
 			lastCell = formatPrice(balanceDifference, true)
 		}
-		table.AddRow(
+		res.AddRow(
 			nil,
 			date.Format("2006-01-02"),
 			"",
@@ -47,7 +34,7 @@ func (state *ViewState) Run() error {
 		for _, entry := range entries {
 			entryCopy := entry
 
-			table.AddRow(
+			res.AddRow(
 				&entryCopy,
 				"",
 				formatPrice(entry.Amount, true),
@@ -56,21 +43,52 @@ func (state *ViewState) Run() error {
 		}
 	}
 
-	app := tview.NewApplication()
-	app.SetRoot(table.Table, true)
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	return res
+}
+
+type ViewState struct {
+	openID    string
+	days      []types.Day
+	timeDelta time.Duration
+
+	table *CustomTable
+	app   *tview.Application
+}
+
+func MakeViewState(days []types.Day) *ViewState {
+	return &ViewState{
+		openID: "",
+		days:   days,
+	}
+}
+
+func (s *ViewState) getKeyHandler() func(event *tcell.EventKey) *tcell.EventKey {
+	return func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 'q':
-			app.Stop()
+			s.app.Stop()
 
 		default:
 			if event.Key() == 13 {
-				entry := table.GetSelected()
+				entry := s.table.GetSelected()
 				println(entry.Description)
 			}
 		}
 
 		return event
-	})
-	return app.Run()
+	}
+}
+
+func (state *ViewState) Run() error {
+	// prepare
+	state.timeDelta = getTimeByOption(ByWeek)
+	state.table = createTable(state.timeDelta, state.days)
+
+	// make real view
+	state.app = tview.NewApplication()
+	state.app.SetRoot(state.table.Table, true)
+	state.app.SetInputCapture(state.getKeyHandler())
+
+	// run
+	return state.app.Run()
 }
