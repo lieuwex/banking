@@ -27,8 +27,7 @@ func MakeViewState(balance float64, entries []*types.Entry) *ViewState {
 	}
 }
 
-// REVIEW
-func (s *ViewState) redrawStuff() {
+func (s *ViewState) redraw() {
 	setCommandBarText := func(prefix, str string) {
 		str = fmt.Sprintf("\n%s%s", prefix, str)
 		s.commandBar.SetText(str)
@@ -42,6 +41,11 @@ func (s *ViewState) redrawStuff() {
 		setCommandBarText("", "")
 	}
 
+	entry := s.table.GetSelected()
+	if entry != nil {
+		s.infoBox.SetText(infoBoxString(entry))
+	}
+
 	s.app.Draw()
 }
 
@@ -53,7 +57,7 @@ func (state *ViewState) Run() error {
 	// create table
 	state.table = createTable(state.model.timeDelta, days)
 	state.table.AddSelectionHandler(func(entry *types.Entry) {
-		state.updateInfoBox(entry)
+		state.redraw()
 	})
 
 	// create infoBox

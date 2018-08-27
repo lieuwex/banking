@@ -3,9 +3,11 @@ package view
 import (
 	"banking/types"
 	"banking/utils"
-	"fmt"
+	"bytes"
 	"strings"
 	"time"
+
+	"text/template"
 )
 
 func createTable(timeDelta time.Duration, days []types.Day) *CustomTable {
@@ -45,13 +47,27 @@ func createTable(timeDelta time.Duration, days []types.Day) *CustomTable {
 	return res
 }
 
+const templateStr = `
+description: {{.Description}}
+
+account: {{.Account}}
+counter account: {{.CounterAccount}}
+
+{{.Information}}
+
+{{if .Tags}}
+tags: {{join .Tags ", "}}
+{{end}}
+`
+
+var infoBoxTemplate = template.Must(
+	template.New("infoBox").
+		Funcs(templateFuncs).
+		Parse(templateStr),
+)
+
 func infoBoxString(entry *types.Entry) string {
-	return fmt.Sprintf(
-		"description: %s\n\naccount: %s\ncounter account: %s\n\n%s\n\ntags: %s",
-		entry.Description,
-		entry.Account,
-		entry.CounterAccount,
-		entry.Information,
-		strings.Join(entry.Tags, ", "),
-	)
+	var buf bytes.Buffer
+	infoBoxTemplate.Execute(&buf, entry)
+	return strings.TrimSpace(buf.String())
 }

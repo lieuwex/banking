@@ -29,7 +29,7 @@ func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.Event
 
 		if fn != nil {
 			s.queryInput(event, s.finishCommand)
-			s.redrawStuff()
+			s.redraw()
 			return nil
 		}
 
@@ -50,7 +50,7 @@ func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.Event
 			}
 		}
 
-		s.redrawStuff()
+		s.redraw()
 		return event
 	}
 }

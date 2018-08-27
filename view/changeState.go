@@ -1,14 +1,5 @@
 package view
 
-import (
-	"banking/types"
-)
-
-func (s *ViewState) updateInfoBox(entry *types.Entry) {
-	str := infoBoxString(entry)
-	s.infoBox.SetText(str)
-}
-
 func (s *ViewState) startSearch() {
 	s.model.isSearching = true
 }

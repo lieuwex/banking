@@ -3,6 +3,7 @@ package view
 import (
 	"banking/types"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -54,4 +55,12 @@ func getTimeByOption(option GroupBy) time.Duration {
 	}
 
 	return -1
+}
+
+var templateFuncs = map[string]interface{}{
+	"join": func(args ...interface{}) string {
+		arr := args[0].([]string)
+		delim := args[1].(string)
+		return strings.Join(arr, delim)
+	},
 }
