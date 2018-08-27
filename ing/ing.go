@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-func ReadFromReader(r io.Reader) ([]types.Entry, error) {
+func ReadFromReader(r io.Reader) ([]*types.Entry, error) {
 	// REVIEW: close?
 	reader := csv.NewReader(os.Stdin)
 	records, err := reader.ReadAll()
 	if err != nil {
-		return []types.Entry{}, err
+		return []*types.Entry{}, err
 	}
 
-	var res []types.Entry
+	var res []*types.Entry
 	for _, fields := range records[1:] {
 		date, err := time.Parse("20060102", fields[0])
 		if err != nil {
-			return []types.Entry{}, err
+			return []*types.Entry{}, err
 		}
 
 		var sign float64
@@ -34,16 +34,16 @@ func ReadFromReader(r io.Reader) ([]types.Entry, error) {
 			sign = -1
 
 		default:
-			return []types.Entry{}, fmt.Errorf("unknown type '%s'", fields[5])
+			return []*types.Entry{}, fmt.Errorf("unknown type '%s'", fields[5])
 		}
 
 		raw := strings.Replace(fields[6], ",", ".", 1)
 		amount, err := strconv.ParseFloat(raw, 64)
 		if err != nil {
-			return []types.Entry{}, err
+			return []*types.Entry{}, err
 		}
 
-		entry := types.Entry{
+		entry := &types.Entry{
 			Date:           date,
 			Description:    fields[1],
 			Account:        fields[2],

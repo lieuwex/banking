@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func extract(records []types.Entry) map[int64][]types.Entry {
-	m := make(map[int64][]types.Entry)
+func extract(records []*types.Entry) map[int64][]*types.Entry {
+	m := make(map[int64][]*types.Entry)
 	for _, record := range records {
 		unix := record.Date.Unix()
 		m[unix] = append(m[unix], record)
@@ -15,7 +15,7 @@ func extract(records []types.Entry) map[int64][]types.Entry {
 	return m
 }
 
-func EntriesToDays(balance float64, entries []types.Entry) []types.Day {
+func EntriesToDays(balance float64, entries []*types.Entry) []types.Day {
 	m := extract(entries)
 
 	days := make([]types.Day, 365)
@@ -26,7 +26,7 @@ func EntriesToDays(balance float64, entries []types.Entry) []types.Day {
 		unix := date.Unix()
 		entries, has := m[unix]
 		if !has {
-			entries = []types.Entry{}
+			entries = []*types.Entry{}
 		}
 
 		dateBalance := 0.0

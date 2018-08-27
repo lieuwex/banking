@@ -4,6 +4,7 @@ import (
 	"banking/types"
 	"banking/utils"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func createTable(timeDelta time.Duration, days []types.Day) *CustomTable {
 			entryCopy := entry
 
 			res.AddRow(
-				&entryCopy,
+				entryCopy,
 				"",
 				formatPrice(entry.Amount, true),
 				entry.Description,
@@ -45,17 +46,12 @@ func createTable(timeDelta time.Duration, days []types.Day) *CustomTable {
 }
 
 func infoBoxString(entry *types.Entry) string {
-	var firstTag string
-	if len(entry.Tags) >= 1 {
-		firstTag = entry.Tags[0]
-	}
-
 	return fmt.Sprintf(
-		"description: %s\n\naccount: %s\ncounter account: %s\n\n%s\n\nfirst tag: %s",
+		"description: %s\n\naccount: %s\ncounter account: %s\n\n%s\n\ntags: %s",
 		entry.Description,
 		entry.Account,
 		entry.CounterAccount,
 		entry.Information,
-		firstTag,
+		strings.Join(entry.Tags, ", "),
 	)
 }

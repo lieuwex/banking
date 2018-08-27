@@ -7,7 +7,7 @@ import (
 
 type model struct {
 	// data
-	entries []types.Entry
+	entries []*types.Entry
 	balance float64
 
 	filter string

@@ -18,7 +18,7 @@ type ViewState struct {
 	app        *tview.Application
 }
 
-func MakeViewState(balance float64, entries []types.Entry) *ViewState {
+func MakeViewState(balance float64, entries []*types.Entry) *ViewState {
 	return &ViewState{
 		model: model{
 			entries: entries,

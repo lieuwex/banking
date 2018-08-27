@@ -2,24 +2,32 @@ package view
 
 import "github.com/gdamore/tcell"
 
+func (s *ViewState) queryInput(event *tcell.EventKey, fn func()) {
+	keycode := event.Key()
+	query := s.model.query
+
+	if keycode == 13 {
+		fn()
+	} else if keycode == 127 && len(query) > 0 {
+		query = query[:len(query)-1]
+	} else {
+		query += string(event.Rune())
+	}
+
+	s.model.query = query
+}
+
 func (s *ViewState) getMainKeyHandler() func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
+		var fn func()
 		if s.model.isSearching {
-			if event.Key() == 13 {
-				s.finishSearch()
-			} else {
-				s.model.query += string(event.Rune())
-			}
-
-			s.redrawStuff()
-			return nil
+			fn = s.finishSearch
 		} else if s.model.isCommanding {
-			if event.Key() == 13 {
-				s.finishCommand()
-			} else {
-				s.model.query += string(event.Rune())
-			}
+			fn = s.finishCommand
+		}
 
+		if fn != nil {
+			s.queryInput(event, s.finishCommand)
 			s.redrawStuff()
 			return nil
 		}

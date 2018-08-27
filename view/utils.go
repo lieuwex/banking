@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func getBetween(days []types.Day, start, end time.Time) (balanceDifference, balance float64, entries []types.Entry) {
+func getBetween(days []types.Day, start, end time.Time) (balanceDifference, balance float64, entries []*types.Entry) {
 	balanceDifference = 0
 
 	for _, day := range days {

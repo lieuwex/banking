@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -29,8 +30,15 @@ func (e Entry) String() string {
 	)
 }
 
+func (e Entry) Matches(str string) bool {
+	base := strings.ToLower(e.Description)
+	str = strings.ToLower(str)
+
+	return strings.Contains(base, str)
+}
+
 type Day struct {
-	Entries []Entry
+	Entries []*Entry
 	Date    time.Time
 
 	DateBalance      float64
